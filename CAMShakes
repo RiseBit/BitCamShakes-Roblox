@@ -1,17 +1,13 @@
---- Notes : Create Annotations Type For Shake, Finish the DragCam, Clean things up
+--- Heyyoo!! This was made by RiseBit, if there is Any issue feel free to contact me on Discord : risebit ( With Star PFP )
+
+
+---- IMPORTANT!! Read this : To use this Templates it is fairly Easy, You just need to Require it and Call the :Shake Function,
+--- And fills the parameters, Dont Forget to Choose the Right Type of Shakes.
+
 
 -- Services
 local RunService = game:GetService("RunService")
 
----/\ Annotations
-export type ShakeState = {
-    active: boolean,
-    type: string,
-    startTime: number,
-    duration: number,
-    amplitude: number,
-    frequency: number,
-} 
 
 local CAM = {}
 
@@ -20,272 +16,188 @@ local Noise = math.noise
 
 -- State for current camera effect
 local shakeState = {
-    active = false,
-    type = nil, -- "Perlin", "Explosion", "Rumble", "Trauma", "Drag"
-    startTime = 0,
-    duration = 0,
-    amplitude = 0,
-    frequency = 0,
-    roughness = 0,
-    fadeType = "Sustain", -- "FadeIn", "FadeOut", "Sustain"
-    connection = nil,
-    dragDirection = Vector2.new(0, 0)
+	active = false,
+	type = nil,
+	startTime = 0,
+	duration = 0,
+	amplitude = 0,
+	frequency = 0,
+	roughness = 0,
+	fadeType = "Sustain", -- "FadeIn", "FadeOut", "Sustain"
+	connection = nil,
 }
+
+--- Annotations
+export type ShakeType = "Perlin" | "Rumble" | "Explosion" | "Trauma" | "Custom"
 
 -- Initialize the update loop
 local function initUpdateLoop(cam)
-                 if shakeState.connection then
-                 shakeState.connection:Disconnect()
-                 end
-    
-    shakeState.connection = RunService.RenderStepped:Connect(function()
-        if shakeState.active then
-            CAM:UpdateCam(cam)
-        end
-    end)
+	if shakeState.connection then
+		shakeState.connection:Disconnect()
+	end
+
+	shakeState.connection = RunService.RenderStepped:Connect(function()
+		if shakeState.active then
+			CAM:UpdateCam(cam)
+		end
+	end)
 end
 
-function CAM:PerlinShake(cam, amplitude, frequency, roughness, duration, type)
-    if not CAM:ValueChecking(amplitude, frequency, roughness, duration) then
-        return
-    end
 
-    -- Set up shake state
-    shakeState.active = true
-    shakeState.type = "Perlin"
-    shakeState.startTime = tick()
-    shakeState.duration = duration
-    shakeState.amplitude = amplitude
-    shakeState.frequency = frequency
-    shakeState.roughness = roughness
-    shakeState.fadeType = type
-    
-    -- Start the update loop if not already running
-    initUpdateLoop(cam)
-    
-    return shakeState.connection
-end
+--- Shake Function
+---@param cam Camera
+---@param amplitude number
+---@param frequency number
+---@param roughness number
+---@param duration number
+---@param fadeType string
+---@param shakeType string
+function CAM:Shake(cam, amplitude, frequency, roughness, duration, fadeType, shakeType: ShakeType)
+	if not CAM:ValueChecking(amplitude, frequency, roughness, duration) then
+		return
+	end
 
-function CAM:ExplosionShake(cam, amplitude, frequency, roughness, duration, type)
-    if not CAM:ValueChecking(amplitude, frequency, roughness, duration) then
-        return
-    end
-    print("ExplosionShake")
-    -- Set up shake state
-    shakeState.active = true
-    shakeState.type = "Explosion"
-    shakeState.startTime = tick()
-    shakeState.duration = duration
-    shakeState.amplitude = amplitude
-    shakeState.frequency = frequency
-    shakeState.roughness = roughness
-    shakeState.fadeType = type or "FadeOut" -- Explosions typically fade out
-    
-    -- Start the update loop if not already running
-    initUpdateLoop(cam)
-    
-    return shakeState.connection
-end
+	-- Set up shake state
+	shakeState.active = true
+	shakeState.type = shakeType
+	shakeState.startTime = tick()
+	shakeState.duration = duration
+	shakeState.amplitude = amplitude
+	shakeState.frequency = frequency
+	shakeState.roughness = roughness
+	shakeState.fadeType = fadeType
 
-function CAM:Rumble(cam, amplitude, frequency, roughness, duration, type)
-    if not CAM:ValueChecking(amplitude, frequency, roughness, duration) then
-        return
-    end
-    
-    -- Set up shake state
-    shakeState.active = true
-    shakeState.type = "Rumble"
-    shakeState.startTime = tick()
-    shakeState.duration = duration
-    shakeState.amplitude = amplitude
-    shakeState.frequency = frequency
-    shakeState.roughness = roughness
-    shakeState.fadeType = type or "Sustain" -- Rumbles typically sustain
-    
-    -- Start the update loop if not already running
-    initUpdateLoop(cam)
-    
-    return shakeState.connection
-end
+	-- Start the update loop if not already running
+	initUpdateLoop(cam)
 
-function CAM:TraumaShakes(cam, amplitude, frequency, roughness, duration, type)
-    if not CAM:ValueChecking(amplitude, frequency, roughness, duration) then
-        return
-    end
-    
-    -- Set up shake state
-    shakeState.active = true
-    shakeState.type = "Trauma"
-    shakeState.startTime = tick()
-    shakeState.duration = duration
-    shakeState.amplitude = amplitude
-    shakeState.frequency = frequency
-    shakeState.roughness = roughness
-    shakeState.fadeType = type or "FadeOut" -- Trauma typically fades out
-    
-    -- Start the update loop if not already running
-    initUpdateLoop(cam)
-    
-    return shakeState.connection
-end
-
-function CAM:Drag(cam, amplitude, frequency, roughness, duration, type)
-    if not CAM:ValueChecking(amplitude, frequency, roughness, duration) then
-        return
-    end
-    
-    -- Detect Which Direction The Camera is moving the Fastest then reverse that direction for the camera, So if the player falling down face the Camera Should Move upwards and Drag.
-   
-    
-    -- Set up shake state
-    shakeState.active = true
-    shakeState.type = "Drag"
-    shakeState.startTime = tick()
-    shakeState.duration = duration
-    shakeState.amplitude = amplitude
-    shakeState.frequency = frequency
-    shakeState.roughness = roughness
-    shakeState.fadeType = type or "FadeIn" -- Drag typically fades in
-    
-    -- Start the update loop if not already running
-    initUpdateLoop(cam)
-    
-    return shakeState.connection
-end
-
-function CAM:SetPriority(priority)
-    -- Implementation for priority if needed
+	return shakeState.connection
 end
 
 function CAM:StartFadeOut(duration)
-    -- Change to FadeOut and reset startTime to create a fade out effect
-    shakeState.fadeType = "FadeOut"
-    shakeState.startTime = tick()
-    shakeState.duration = duration
+	-- Change to FadeOut and reset startTime to create a fade out effect
+	shakeState.fadeType = "FadeOut"
+	shakeState.startTime = tick()
+	shakeState.duration = duration
 end
 
 function CAM:StartFadeIn(duration)
-    -- Change to FadeIn and reset startTime to create a fade in effect
-    shakeState.fadeType = "FadeIn"
-    shakeState.startTime = tick()
-    shakeState.duration = duration
+	-- Change to FadeIn and reset startTime to create a fade in effect
+	shakeState.fadeType = "FadeIn"
+	shakeState.startTime = tick()
+	shakeState.duration = duration
 end
 
 function CAM:ResetState()
-    --- For Future Updates
-                if shakeState.connection then
-                    shakeState.connection:Disconnect()
-                    shakeState.connection = nil
-                end
-                
-                -- Reset all state values
-                shakeState.active = false
-                shakeState.type = nil
-                shakeState.startTime = 0
-                shakeState.duration = 0
-                shakeState.amplitude = 0
-                shakeState.frequency = 0
-                shakeState.roughness = 0
-                shakeState.fadeType = "Sustain"
-                shakeState.dragDirection = Vector2.new(0, 0)
-  end
+	--- For Future Updates
+	if shakeState.connection then
+		shakeState.connection:Disconnect()
+		shakeState.connection = nil
+	end
+
+	-- Reset all state values
+	shakeState.active = false
+	shakeState.type = nil
+	shakeState.startTime = 0
+	shakeState.duration = 0
+	shakeState.amplitude = 0
+	shakeState.frequency = 0
+	shakeState.roughness = 0
+	shakeState.fadeType = "Sustain"
+	shakeState.dragDirection = Vector2.new(0, 0)
+	-- Reset tracking values
+	shakeState.lastCameraPosition = nil
+	shakeState.lastCameraOrientation = nil
+end
 
 function CAM:ValueChecking(amplitude, frequency, roughness, duration)
-    -- Check if all values are numbers
-    if typeof(amplitude) ~= "number" then
-        return false
-    end
-    
-    if typeof(frequency) ~= "number" then
-        return false
-    end
-    
-    if typeof(roughness) ~= "number" then
-        return false
-    end
-    
-    if typeof(duration) ~= "number" then
-        return false
-    end
-    
-    -- If we reach here, all checks passed
-    return true
+	-- Check if all values are numbers
+	if typeof(amplitude) ~= "number" then
+		return false
+	end
+
+	if typeof(frequency) ~= "number" then
+		return false
+	end
+
+	if typeof(roughness) ~= "number" then
+		return false
+	end
+
+	if typeof(duration) ~= "number" then
+		return false
+	end
+
+	-- If we reach here, all checks passed
+	return true
 end
 
 function CAM:UpdateCam(cam)
-    assert(cam:IsA("Camera"), "Camera is not a valid camera")
-    
-    -- Check if effect is active
-    if not shakeState.active then
-        return cam
-    end
-    
-    local elapsed = tick() - shakeState.startTime
-    
-    -- Check if duration has ended
-    if elapsed > shakeState.duration then
-        shakeState.active = false
+	assert(cam:IsA("Camera"), "Camera is not a valid camera")
 
-        if shakeState.connection then
-            shakeState.connection:Disconnect()
-            shakeState.connection = nil
-        end
+	if not shakeState.active then
+		return cam
+	end
+
+	local elapsed = tick() - shakeState.startTime
 
 
-        return cam
-    end
-    
-    -- Calculate intensity based on fadeType
-    local intensity = 1
-    if shakeState.fadeType == "FadeIn" then
-        intensity = elapsed / shakeState.duration -- 0 to 1
-    elseif shakeState.fadeType == "FadeOut" then
-        intensity = 1 - (elapsed / shakeState.duration) -- 1 to 0
-    end
-    
-    -- Calculate offset based on effect type
-    local offset = Vector2.new(0, 0)
-    
-    if shakeState.type == "Perlin" then
-                local randomNumber = math.random(1,10)/10
-        offset = Vector2.new(
-            Noise(randomNumber * shakeState.frequency / shakeState.roughness) * shakeState.amplitude,
-            Noise(randomNumber * shakeState.frequency / shakeState.roughness) * shakeState.amplitude
-        )
-        print(offset)
-    elseif shakeState.type == "Explosion" then
+	if elapsed > shakeState.duration then
+		shakeState.active = false
+		if shakeState.connection then
+			shakeState.connection:Disconnect()
+			shakeState.connection = nil
+		end
 
-        local decayFactor = math.exp(-elapsed * shakeState.frequency)
-        local randomAngle = math.random() * math.pi * 2
-        offset = Vector2.new(
-            math.cos(randomAngle) * shakeState.amplitude * decayFactor,
-            math.sin(randomAngle) * shakeState.amplitude * decayFactor
-        )
-    elseif shakeState.type == "Rumble" then
+		return cam
+	end
 
-        offset = Vector2.new(
-            math.sin(elapsed * shakeState.frequency) * shakeState.amplitude,
-            math.cos(elapsed * shakeState.frequency * 1.3) * shakeState.amplitude
-        )
-    elseif shakeState.type == "Trauma" then
-        local traumaIntensity = intensity * intensity
-        offset = Vector2.new(
-            Noise(tick() * shakeState.frequency, 0) * shakeState.amplitude * traumaIntensity,
-            Noise(0, tick() * shakeState.frequency) * shakeState.amplitude * traumaIntensity
-        )
-    elseif shakeState.type == "Drag" then
-        -- Drag uses smooth directional movement
-        local dragFactor = math.sin(elapsed * shakeState.frequency) * 0.5 + 0.5
-        offset = shakeState.dragDirection * shakeState.amplitude * dragFactor
-    end
-    
-    -- Apply intensity
-    offset = offset * intensity
-    
-    -- Apply offset to camera
-    cam.CFrame = cam.CFrame * CFrame.new(offset.X, offset.Y, 0)
-    
-    return cam
+	-- Calculate intensity based on fadeType
+	local intensity = 1
+	if shakeState.fadeType == "FadeIn" then
+		intensity = elapsed / shakeState.duration -- 0 to 1
+	elseif shakeState.fadeType == "FadeOut" then
+		intensity = 1 - (elapsed / shakeState.duration) -- 1 to 0
+	end
+
+	-- Calculate offset based on effect type
+	local offset = Vector2.new(0, 0)
+
+	if shakeState.type == "Perlin" then
+		local randomNumber = math.random(1,10)/100
+		offset = Vector2.new(
+			Noise(randomNumber * shakeState.frequency / shakeState.roughness) * shakeState.amplitude,
+			Noise(randomNumber * shakeState.frequency / shakeState.roughness) * shakeState.amplitude
+		)
+		print(offset)
+	elseif shakeState.type == "Explosion" then
+
+		local decayFactor = math.exp(-elapsed * shakeState.frequency)
+		local randomAngle = math.random() * math.pi * 2
+		offset = Vector2.new(
+			math.cos(randomAngle) * shakeState.amplitude * decayFactor,
+			math.sin(randomAngle) * shakeState.amplitude * decayFactor
+		)
+	elseif shakeState.type == "Rumble" then
+
+		offset = Vector2.new(
+			math.sin(elapsed * shakeState.frequency) * shakeState.amplitude,
+			math.cos(elapsed * shakeState.frequency * 1.3) * shakeState.amplitude
+		)
+	elseif shakeState.type == "Trauma" then
+		local traumaIntensity = intensity * intensity
+		local randomNumber = math.random(1,10)/100
+		offset = Vector2.new(
+			Noise(randomNumber * shakeState.frequency / shakeState.roughness) * shakeState.amplitude * traumaIntensity,
+			Noise(randomNumber * shakeState.frequency / shakeState.roughness) * shakeState.amplitude * traumaIntensity
+		)
+	end
+
+	-- Apply intensity
+	offset = offset * intensity
+
+	-- Apply offset to camera
+	cam.CFrame = cam.CFrame * CFrame.new(offset.X, offset.Y, 0)
+	return cam
 end
 
 
