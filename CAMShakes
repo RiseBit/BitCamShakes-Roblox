@@ -131,9 +131,10 @@ function CAM:UpdateCam(cam)
 	end
 	
 	local elapsed = tick() - shakeState.startTime
+	local finishTime = .5
 
 	
-	if elapsed > shakeState.duration + 2  then
+	if elapsed > shakeState.duration + finishTime  then
 		shakeState.active = false
 
 		if shakeState.connection then
@@ -161,7 +162,6 @@ function CAM:UpdateCam(cam)
 			Noise(randomNumber * shakeState.frequency / shakeState.roughness) * shakeState.amplitude,
 			Noise(randomNumber * shakeState.frequency / shakeState.roughness) * shakeState.amplitude
 		)
-		print(offset)
 	elseif shakeState.type == "Explosion" then
 
 		local decayFactor = math.exp(-elapsed * shakeState.frequency)
@@ -190,7 +190,7 @@ function CAM:UpdateCam(cam)
 
 	if elapsed > shakeState.duration then
 		local fadeOutTime = elapsed - shakeState.duration
-		local fadeOutProgress = math.min(fadeOutTime / 2, 1)
+		local fadeOutProgress = math.min(fadeOutTime / finishTime, 1)
 		finalMultiplier = (1 - fadeOutProgress) ^ 2
 		
 		
