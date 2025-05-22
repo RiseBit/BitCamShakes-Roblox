@@ -18,7 +18,7 @@ local shakeState = {
 	duration = 0,
 	amplitude = 0,
 	frequency = 0,
-	roughness = 0,
+	smoothness = 0,
 	fadeType = "Sustain", -- "FadeIn", "FadeOut", "Sustain"
 	connection = nil,
 }
@@ -41,12 +41,12 @@ end
 ---@param cam Camera
 ---@param amplitude number
 ---@param frequency number
----@param roughness number
+---@param smoothness number
 ---@param duration number
 ---@param fadeType string
 ---@param shakeType string
-function CAM:Shake(cam, amplitude, frequency, roughness, duration, fadeType, shakeType: ShakeType)
-	if not CAM:ValueChecking(amplitude, frequency, roughness, duration) then
+function CAM:Shake(cam, amplitude, frequency, smoothness, duration, fadeType, shakeType: ShakeType)
+	if not CAM:ValueChecking(amplitude, frequency, smoothness, duration) then
 		return
 	end
 
@@ -57,7 +57,7 @@ function CAM:Shake(cam, amplitude, frequency, roughness, duration, fadeType, sha
 	shakeState.duration = duration
 	shakeState.amplitude = amplitude
 	shakeState.frequency = frequency
-	shakeState.roughness = roughness
+	shakeState.smoothness = smoothness
 	shakeState.fadeType = fadeType
 
 
@@ -94,7 +94,7 @@ function CAM:ResetState()
 	shakeState.duration = 0
 	shakeState.amplitude = 0
 	shakeState.frequency = 0
-	shakeState.roughness = 0
+	shakeState.smoothness = 0
 	shakeState.fadeType = "Sustain"
 	shakeState.dragDirection = Vector2.new(0, 0)
 
@@ -102,7 +102,7 @@ function CAM:ResetState()
 	shakeState.lastCameraOrientation = nil
 end
 
-function CAM:ValueChecking(amplitude, frequency, roughness, duration)
+function CAM:ValueChecking(amplitude, frequency, smoothness, duration)
 	if typeof(amplitude) ~= "number" then
 		return false
 	end
@@ -111,7 +111,7 @@ function CAM:ValueChecking(amplitude, frequency, roughness, duration)
 		return false
 	end
 
-	if typeof(roughness) ~= "number" then
+	if typeof(smoothness) ~= "number" then
 		return false
 	end
 
@@ -159,8 +159,8 @@ function CAM:UpdateCam(cam)
 	if shakeState.type == "Perlin" then
 		local randomNumber = math.random(1,10)/100
 		offset = Vector2.new(
-			Noise(randomNumber * shakeState.frequency / shakeState.roughness) * shakeState.amplitude,
-			Noise(randomNumber * shakeState.frequency / shakeState.roughness) * shakeState.amplitude
+			Noise(randomNumber * shakeState.frequency / shakeState.smoothness) * shakeState.amplitude,
+			Noise(randomNumber * shakeState.frequency / shakeState.smoothness) * shakeState.amplitude
 		)
 	elseif shakeState.type == "Explosion" then
 
@@ -180,8 +180,8 @@ function CAM:UpdateCam(cam)
 		local traumaIntensity = intensity * intensity
 		local randomNumber = math.random(1,10)/100
 		offset = Vector2.new(
-			Noise(randomNumber * shakeState.frequency / shakeState.roughness) * shakeState.amplitude * traumaIntensity,
-			Noise(randomNumber * shakeState.frequency / shakeState.roughness) * shakeState.amplitude * traumaIntensity
+			Noise(randomNumber * shakeState.frequency / shakeState.smoothness) * shakeState.amplitude * traumaIntensity,
+			Noise(randomNumber * shakeState.frequency / shakeState.smoothness) * shakeState.amplitude * traumaIntensity
 		)
 	end
 
