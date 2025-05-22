@@ -5,16 +5,12 @@
 --- And fills the parameters, Dont Forget to Choose the Right Type of Shakes.
 
 
--- Services
-local RunService = game:GetService("RunService")
-
-
 local CAM = {}
-
+local RunService = game:GetService("RunService")
 local Noise = math.noise
 
 
--- State for current camera effect
+
 local shakeState = {
 	active = false,
 	type = nil,
@@ -32,10 +28,7 @@ export type ShakeType = "Perlin" | "Rumble" | "Explosion" | "Trauma" | "Custom"
 
 -- Initialize the update loop
 local function initUpdateLoop(cam)
-	if shakeState.connection then
-		shakeState.connection:Disconnect()
-	end
-
+	
 	shakeState.connection = RunService.RenderStepped:Connect(function()
 		if shakeState.active then
 			CAM:UpdateCam(cam)
@@ -57,7 +50,7 @@ function CAM:Shake(cam, amplitude, frequency, roughness, duration, fadeType, sha
 		return
 	end
 
-	-- Set up shake state
+
 	shakeState.active = true
 	shakeState.type = shakeType
 	shakeState.startTime = tick()
@@ -67,21 +60,21 @@ function CAM:Shake(cam, amplitude, frequency, roughness, duration, fadeType, sha
 	shakeState.roughness = roughness
 	shakeState.fadeType = fadeType
 
-	-- Start the update loop if not already running
+
 	initUpdateLoop(cam)
 
 	return shakeState.connection
 end
 
 function CAM:StartFadeOut(duration)
-	-- Change to FadeOut and reset startTime to create a fade out effect
+
 	shakeState.fadeType = "FadeOut"
 	shakeState.startTime = tick()
 	shakeState.duration = duration
 end
 
 function CAM:StartFadeIn(duration)
-	-- Change to FadeIn and reset startTime to create a fade in effect
+
 	shakeState.fadeType = "FadeIn"
 	shakeState.startTime = tick()
 	shakeState.duration = duration
@@ -104,13 +97,12 @@ function CAM:ResetState()
 	shakeState.roughness = 0
 	shakeState.fadeType = "Sustain"
 	shakeState.dragDirection = Vector2.new(0, 0)
-	-- Reset tracking values
+
 	shakeState.lastCameraPosition = nil
 	shakeState.lastCameraOrientation = nil
 end
 
 function CAM:ValueChecking(amplitude, frequency, roughness, duration)
-	-- Check if all values are numbers
 	if typeof(amplitude) ~= "number" then
 		return false
 	end
@@ -127,7 +119,7 @@ function CAM:ValueChecking(amplitude, frequency, roughness, duration)
 		return false
 	end
 
-	-- If we reach here, all checks passed
+
 	return true
 end
 
@@ -137,12 +129,13 @@ function CAM:UpdateCam(cam)
 	if not shakeState.active then
 		return cam
 	end
-
+	
 	local elapsed = tick() - shakeState.startTime
 
-
-	if elapsed > shakeState.duration then
+	
+	if elapsed > shakeState.duration + 2  then
 		shakeState.active = false
+
 		if shakeState.connection then
 			shakeState.connection:Disconnect()
 			shakeState.connection = nil
@@ -159,7 +152,7 @@ function CAM:UpdateCam(cam)
 		intensity = 1 - (elapsed / shakeState.duration) -- 1 to 0
 	end
 
-	-- Calculate offset based on effect type
+	
 	local offset = Vector2.new(0, 0)
 
 	if shakeState.type == "Perlin" then
@@ -192,11 +185,20 @@ function CAM:UpdateCam(cam)
 		)
 	end
 
-	-- Apply intensity
 	offset = offset * intensity
+	local finalMultiplier = 1
 
-	-- Apply offset to camera
-	cam.CFrame = cam.CFrame * CFrame.new(offset.X, offset.Y, 0)
+	if elapsed > shakeState.duration then
+		local fadeOutTime = elapsed - shakeState.duration
+		local fadeOutProgress = math.min(fadeOutTime / 2, 1)
+		finalMultiplier = (1 - fadeOutProgress) ^ 2
+		
+		
+		cam.CFrame = cam.CFrame * CFrame.new(offset.X * finalMultiplier, offset.Y * finalMultiplier, 0)
+	else
+		cam.CFrame = cam.CFrame * CFrame.new(offset.X, offset.Y, 0)
+	end
+
 	return cam
 end
 
